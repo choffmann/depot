@@ -1,0 +1,28 @@
+on:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:17
+        env:
+          POSTGRES_USER: depot
+          POSTGRES_PASSWORD: dev
+          POSTGRES_DB: depot
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U depot -d depot"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://depot:dev@localhost:5432/depot
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: "go.mod"
+      - run: go test ./...
